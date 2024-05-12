@@ -30,7 +30,7 @@ jobs:
         with:
           args: release --clean
         env:
-          GITHUB_TOKEN = ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add attestations
         uses: actions/attest-build-provenance@951c0c5f8e375ad4efad33405ab77f7ded2358e4
