@@ -14,6 +14,9 @@ import (
 //go:embed subdomain_wordlist.txt
 var wordlist string
 
+// BruteForceResult is used by `checkCandidateSubdomain` and SubdomainInfoCmd.bruteForce
+// to hold information the results of a brute force search. It needs a mutex in order to
+// avoid race conditions when keeping track of valid subdomains for a given host.
 type BruteForceResult struct {
 	Mutex  sync.Mutex
 	Result []string
