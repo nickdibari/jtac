@@ -5,14 +5,15 @@ import (
 	_ "embed"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"sync"
+
+	"github.com/spf13/cobra"
 )
 
-// TODO: Allow for user-supplied wordlist as command line option?
-
 //go:embed subdomain_wordlist.txt
-var wordlist string
+var defaultWordlist string
 
 // BruteForceResult is used by `checkCandidateSubdomain` and SubdomainInfoCmd.bruteForce
 // to hold information the results of a brute force search. It needs a mutex in order to
@@ -24,7 +25,36 @@ type BruteForceResult struct {
 
 // SubdomainInfoCmd is used by [cmd/subdomain.go] to enumerate
 // possible subdomains for a given host.
-type SubdomainInfoCmd struct{}
+type SubdomainInfoCmd struct {
+	wordlist string
+}
+
+func NewSubdomainInfoCmd(ctx context.Context, cmd *cobra.Command) (*SubdomainInfoCmd, error) {
+	var wordlist string
+
+	wordlistFile, err := cmd.Flags().GetString("wordlist")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if wordlistFile != "" {
+		wordlistBytes, err := os.ReadFile(wordlistFile)
+
+		if err != nil {
+			return nil, err
+		}
+
+		wordlist = string(wordlistBytes)
+	} else {
+		wordlist = defaultWordlist
+	}
+
+	subdomainInfoCmd := &SubdomainInfoCmd{wordlist}
+
+	return subdomainInfoCmd, nil
+
+}
 
 func (s *SubdomainInfoCmd) Run(ctx context.Context, host string) ([]string, error) {
 	var result []string
@@ -44,7 +74,7 @@ func (s *SubdomainInfoCmd) Run(ctx context.Context, host string) ([]string, erro
 func (s *SubdomainInfoCmd) bruteForce(ctx context.Context, host string) ([]string, error) {
 	var waitGroup sync.WaitGroup
 
-	candidateSubdomains := strings.Split(wordlist, "\n")
+	candidateSubdomains := strings.Split(s.wordlist, "\n")
 
 	result := BruteForceResult{}
 

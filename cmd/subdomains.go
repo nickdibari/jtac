@@ -27,7 +27,12 @@ var subdomainCmd = &cobra.Command{
 
 		fmt.Printf("performing subdomain lookup for %s...\n", hostInput)
 
-		subdomainInfoCmd := subdomains.SubdomainInfoCmd{}
+		subdomainInfoCmd, err := subdomains.NewSubdomainInfoCmd(ctx, cmd)
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 
 		subdomains, err := subdomainInfoCmd.Run(ctx, hostInput)
 
@@ -45,5 +50,6 @@ var subdomainCmd = &cobra.Command{
 }
 
 func init() {
+	subdomainCmd.Flags().StringP("wordlist", "w", "", "custom wordlist to use for brute-forcing subdomains")
 	rootCmd.AddCommand(subdomainCmd)
 }
